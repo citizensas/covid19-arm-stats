@@ -1,0 +1,26 @@
+{
+  "name": "covid19-arm-stats",
+  "version": "0.0.1",
+  "description": "Statistics on covid19 in Armenia",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "jsdom": "^16.3.0",
+    "pug": "^3.0.0"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "repository": {
+    "url": "https://github.com/citizensas/covid19-arm-stats"
+  },
+  "license": "MIT",
+  "keywords": [
+    "covid19",
+    "armenia",
+    "express"
+  ]
+}

@@ -1,0 +1,61 @@
+// server.js
+// where your node app starts
+
+// we've started you off with Express (https://expressjs.com/)
+// but feel free to use whatever libraries or frameworks you'd like through `package.json`.
+const express = require("express");
+const app = express();
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
+app.set("view engine", "pug");
+
+// https://expressjs.com/en/starter/basic-routing.html
+app.get("/", (request, response) => {
+  const dom = JSDOM.fromURL(
+    "https://e.infogram.com/71d42d9d-504e-4a8b-a697-f52f4178b329?src=embed",
+    { resources: "usable", runScripts: "dangerously" }
+  )
+    .then(
+      dom => 
+        new Promise(resolve => {
+          dom.window.onload = () => resolve(dom);
+        })
+    )
+    .then(dom => {
+      const data =
+        dom.window.infographicData.elements.content.content.entities[
+          "6c2332a5-b0ba-458e-aedf-21b9ec2a9722"
+        ].props.chartData.data[0];
+      data.shift();
+      // const confirmedRelativeToTests = []
+      const tests = [];
+      const confirmedCases = [];
+      data.map(([dateStr, confirmed, , negativeTests]) => {
+        const date = new Date(
+          dateStr
+            .split(".")
+            .reverse()
+            .join("-")
+        );
+
+        confirmed = parseInt(confirmed);
+        negativeTests = parseInt(negativeTests);
+        const totalTested = negativeTests + confirmed;
+
+        // const confirmedPercentage = confirmed ? confirmed*100 / totalTested : 0
+        confirmedCases.push({ x: dateStr, value: confirmed });
+        tests.push({ x: dateStr, value: totalTested });
+      });
+
+      response.render("index", { confirmedCases, tests });
+    })
+    .catch(e => {
+      response.render("index", { confirmedCases: [], tests: [] });
+    });
+});
+
+// listen for requests :)
+const listener = app.listen(process.env.PORT, () => {
+  console.log("Your app is listening on port " + listener.address().port);
+});

@@ -25,7 +25,7 @@ const fetchData = async () => {
     const lastUpdatedDate = lastRow.date;
     if (
       lastUpdatedDate.getDate() < now.getDate() - 1 &&
-      now.getUTCHours() >= 6
+      now.getUTCHours() >= 7
     ) {
       needToUpdateDB = true;
     }
@@ -43,13 +43,17 @@ const fetchData = async () => {
           ].props.chartData.data[0];
         data.shift();
         return data.map(
-          ([dateStr, confirmed, recovered, negativeTests, deaths = 0]) => [
-            dateStr.split(".").reverse().join("-"),
-            parseInt(confirmed),
-            parseInt(recovered),
-            parseInt(negativeTests),
-            parseInt(deaths),
-          ]
+          ([dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
+            const [day, month, year] = dateStr.split(".").map(Number)
+            const date = new Date(Date.UTC(year, month-1, day))
+            return [
+              date,
+              parseInt(confirmed),
+              parseInt(recovered),
+              parseInt(negativeTests),
+              parseInt(deaths),
+            ]
+          }
         );
       })
       .then(async (data) => {
@@ -70,8 +74,13 @@ app.get("/", (request, response) => {
 });
 
 app.get("/data", async (req, res) => {
+  // res.set('Cache-Control', 'max-age=86400')
   try {
     const data = await fetchData();
+    const {date: lastDate} = [...data].pop()
+    lastDate.setDate(lastDate.getDate() + 2)
+    lastDate.setUTCHours(7)
+    res.set('Expires', lastDate.toUTCString())
     res.json(data);
   } catch (error) {
     console.error(error);

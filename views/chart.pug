@@ -3,23 +3,21 @@ html
   head
     script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js")
   body
-    canvas(id="myChart" width="800" height="600")/
+    div
+        canvas(id="chart-1" width="800" height="600")/
+    div
+        canvas(id="chart-2" width="800" height="600")/
     script.
-        const ctx = document.getElementById('myChart');
+        const ctx1 = document.getElementById('chart-1').getContext('2d');
+        const ctx2 = document.getElementById('chart-2').getContext('2d');
         fetch('/data')
         .then(data => data.json())
         .then(data => {
-            let totalConfirmed = 0
-            let totalTested = 0
-            data.forEach(({confirmed, negativeTests}) => {
-                totalConfirmed += confirmed
-                totalTested += confirmed + negativeTests
-            })
             const intl = new Intl.DateTimeFormat('en-US', {
                 month: 'short',
                 day: 'numeric'
             })
-            const myChart = new Chart(ctx,
+            new Chart(ctx1,
             {
                 type: 'line',
                 data: {
@@ -93,6 +91,72 @@ html
                                 min: 0,
                                 max: 100
                             }
+                        }],
+                    }
+                }
+            });
+            let totalConfirmed = 0
+            let totalDeaths = 0
+            let totalRecovered = 0
+            const sumData = data.map(row => {
+                return {
+                    date: row.date,
+                    confirmed: totalConfirmed += row.confirmed,
+                    dead: totalDeaths += row.deaths,
+                    recovered: totalRecovered += row.recovered
+                }
+            })
+            new Chart(ctx2,
+            {
+                type: 'line',
+                data: {
+                    labels: sumData.map(row => intl.format(new Date(row.date))),
+                    datasets: [{
+                        label: '# of confirmed cases',
+                        data: sumData.map(row => row.confirmed),
+                        borderWidth: 1,
+                        fill: true,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    }, {
+                        label: '# of deaths',
+                        data: sumData.map(row => row.dead),
+                        fill: true
+                    }, {
+                        label: '# recovered',
+                        data: sumData.map(row => row.recovered),
+                        borderColor: 'rgba(0, 255, 0, 0.2)',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                        position: 'nearest',
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)'
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Days'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            type: 'logarithmic',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number'
+                            },
                         }],
                     }
                 }

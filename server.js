@@ -21,17 +21,26 @@ const fetchData = async () => {
   const lastRow = res.rows[count - 1];
   let needToUpdateDB = false;
   const now = new Date();
+  now.setUTCHours(0)
+  now.setUTCMinutes(0)
+  now.setUTCSeconds(0)
+  now.setUTCMilliseconds(0)
+  now.setUTCDate(now.getUTCDate())
+  let lastUpdatedNextDate;
   if (lastRow) {
-    const lastUpdatedDate = lastRow.date;
+    const lastUpdatedDate = new Date(Date.UTC(lastRow.date.getFullYear(), lastRow.date.getMonth(), lastRow.date.getDate()))
+    lastUpdatedNextDate = new Date(lastUpdatedDate)
+    lastUpdatedDate.setUTCDate(
+        lastUpdatedDate.getUTCDate() + 1
+    );
     if (
-      lastUpdatedDate.getDate() < now.getDate() - 1 &&
-      now.getUTCHours() >= 7
+      lastUpdatedDate < now
     ) {
       needToUpdateDB = true;
     }
   }
   if (count === 0 || needToUpdateDB) {
-    return JSDOM.fromURL(
+    JSDOM.fromURL(
       "https://e.infogram.com/71d42d9d-504e-4a8b-a697-f52f4178b329?src=embed",
       { runScripts: "dangerously" }
     )
@@ -42,31 +51,38 @@ const fetchData = async () => {
             "6c2332a5-b0ba-458e-aedf-21b9ec2a9722"
           ].props.chartData.data[0];
         data.shift();
-        return data.map(
-          ([dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
-            const [day, month, year] = dateStr.split(".").map(Number)
-            const date = new Date(Date.UTC(year, month-1, day))
+        return data
+          .map(([dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
+            const [day, month, year] = dateStr.split(".").map(Number);
+            const date = new Date(Date.UTC(year, month - 1, day));
             return [
               date,
               parseInt(confirmed),
               parseInt(recovered),
               parseInt(negativeTests),
               parseInt(deaths),
-            ]
-          }
-        );
+            ];
+          })
+          .filter((data) => {
+            if (lastUpdatedNextDate) {
+              return lastUpdatedNextDate < data[0]
+            }
+            return true
+          });
       })
       .then(async (data) => {
-        await client.query(`TRUNCATE TABLE "data"`);
-        return client.query(
-          `INSERT INTO data VALUES ${expand(data.length, 5)} RETURNING *`,
-          flatten(data)
-        );
+        if (data.length > 0) {
+          return client.query(
+            `INSERT INTO data VALUES ${expand(data.length, 5)}`,
+            flatten(data)
+          );
+        }
       })
-      .then((res) => res.rows);
-  } else {
-    return res.rows;
+      .catch((error) => {
+        console.error(error);
+      });
   }
+  return res.rows;
 };
 
 app.get("/", (request, response) => {
@@ -77,10 +93,9 @@ app.get("/data", async (req, res) => {
   // res.set('Cache-Control', 'max-age=86400')
   try {
     const data = await fetchData();
-    const {date: lastDate} = [...data].pop()
-    lastDate.setDate(lastDate.getDate() + 2)
-    lastDate.setUTCHours(7)
-    res.set('Expires', lastDate.toUTCString())
+    const { date } = [...data].pop();
+    const lastDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 2, 6, 30))
+    res.set("Expires", lastDate.toUTCString());
     res.json(data);
   } catch (error) {
     console.error(error);

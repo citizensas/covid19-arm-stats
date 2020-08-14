@@ -121,12 +121,20 @@ html
                     }, {
                         label: '# of deaths',
                         data: sumData.map(row => row.dead),
-                        fill: true
+                        fill: false,
+                        hidden: true,
+                        yAxisID: 'yAxisActiveCases',
                     }, {
                         label: '# recovered',
                         data: sumData.map(row => row.recovered),
                         borderColor: 'rgba(0, 255, 0, 0.2)',
                         fill: false,
+                    }, {
+                        label: '# of active cases',
+                        borderColor: 'rgba(0, 0, 255, 0.5)',
+                        data: sumData.map((row) => row.confirmed - row.recovered),
+                        yAxisID: 'yAxisActiveCases',
+                        fill: false
                     }]
                 },
                 options: {
@@ -152,11 +160,24 @@ html
                         }],
                         yAxes: [{
                             display: true,
-                            type: 'logarithmic',
+                            type: 'linear',
                             scaleLabel: {
                                 display: true,
                                 labelString: 'Number'
                             },
+                        }, {
+                            type: 'linear',
+                            id: 'yAxisActiveCases',
+                            display: true,
+                            position: 'right',
+                            scaleLabel: {
+                                display: true,
+                                labelString: '# of active cases'
+                            },
+                            ticks: {
+                                display: false,
+                                beginAtZero: true,
+                            }
                         }],
                     }
                 }

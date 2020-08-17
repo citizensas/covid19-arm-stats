@@ -15,6 +15,8 @@ client.connect();
 
 app.set("view engine", "pug");
 
+app.use('/public', express.static('public'))
+
 const fetchData = async () => {
   const res = await client.query('SELECT * FROM "data" ORDER BY "date"');
   const count = res.rows.length;

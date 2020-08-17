@@ -36,6 +36,7 @@ fetch("/data")
                 display: true,
                 labelString: "Weeks",
               },
+              offset: true
             },
           ],
           yAxes: [
@@ -280,6 +281,7 @@ function getDataPerDay(data) {
       {
         fill: false,
         borderColor: "rgba(255, 128, 64, 1)",
+        backgroundColor: "rgba(255, 128, 64, 0.5)",
         yAxisID: "avgPercent",
         label: "% confirmed cases",
         data: data.map(({ confirmed, negativeTests }) => {

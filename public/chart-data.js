@@ -191,7 +191,7 @@ fetch("/data")
           {
             label: "# of active cases",
             borderColor: "rgba(0, 0, 255, 0.5)",
-            data: sumData.map((row) => row.confirmed - row.recovered),
+            data: sumData.map((row) => row.confirmed - row.recovered - row.dead),
             yAxisID: "yAxisActiveCases",
             fill: false,
           },
@@ -239,7 +239,7 @@ fetch("/data")
                 labelString: "# of active cases",
               },
               ticks: {
-                display: false,
+                display: true,
                 beginAtZero: true,
               },
             },

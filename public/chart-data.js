@@ -303,7 +303,7 @@ function getDataPerWeek(data) {
   const dataPerWeek = data.reduce(
     (acc, { date, confirmed, negativeTests, recovered }) => {
       const dDate = new Date(date);
-      if (dDate.getUTCDay() === 0) {
+      if (dDate.getUTCDay() === 6) {
         acc.push({
           date: dDate,
           confirmed: sumData.confirmed,

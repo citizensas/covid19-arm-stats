@@ -52,25 +52,21 @@ const fetchData = async () => {
           dom.window.infographicData.elements.content.content.entities[
             "6c2332a5-b0ba-458e-aedf-21b9ec2a9722"
           ].props.chartData.data[0];
-        data.shift();
-        return data
-          .map(([dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
-            const [day, month, year] = dateStr.split(".").map(Number);
-            const date = new Date(Date.UTC(year, month - 1, day));
-            return [
+
+        return data.reduce((acc, [dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
+          const [day, month, year] = dateStr.split(".").map(Number);
+          const date = new Date(Date.UTC(year, month - 1, day));
+          const numbers = [confirmed, recovered, negativeTests, deaths].map(n => parseInt(n, 10))
+          if ((lastUpdatedNextDate && lastUpdatedNextDate >= date) || numbers.some(Number.isNaN)) {
+            return acc
+          }
+          return [
+            ...acc, [
               date,
-              parseInt(confirmed),
-              parseInt(recovered),
-              parseInt(negativeTests),
-              parseInt(deaths),
-            ];
-          })
-          .filter((data) => {
-            if (lastUpdatedNextDate) {
-              return lastUpdatedNextDate < data[0]
-            }
-            return true
-          });
+              ...numbers
+            ]
+          ];
+        }, [])
       })
       .then(async (data) => {
         if (data.length > 0) {

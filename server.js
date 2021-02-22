@@ -53,13 +53,6 @@ const fetchData = async () => {
             "6c2332a5-b0ba-458e-aedf-21b9ec2a9722"
           ].props.chartData.data[0];
         data.shift();
-        /**
-        * Remove last element.
-        * Wierd item at the end of the array, which is a an Array of one element (Date).
-        * May be replace using a filter like this in the future:
-        * .filter(item => item.length > 3)
-        */
-        data.pop();
         return data
           .map(([dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
             const [day, month, year] = dateStr.split(".").map(Number);

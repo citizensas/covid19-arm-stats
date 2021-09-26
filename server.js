@@ -50,7 +50,7 @@ const fetchData = async () => {
       .then((dom) => {
         const data =
           dom.window.infographicData.elements.content.content.entities[
-            "6c2332a5-b0ba-458e-aedf-21b9ec2a9722"
+            "f5b6e83c-39b1-47c6-a84f-cd7ebaa3b7b1"
           ].props.chartData.data[0];
 
         return data.reduce((acc, [dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {

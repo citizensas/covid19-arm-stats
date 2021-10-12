@@ -15,7 +15,7 @@ client.connect();
 
 app.set("view engine", "pug");
 
-app.use('/public', express.static('public'))
+app.use("/public", express.static("public"));
 
 const fetchData = async () => {
   const res = await client.query('SELECT * FROM "data" ORDER BY "date"');
@@ -23,21 +23,23 @@ const fetchData = async () => {
   const lastRow = res.rows[count - 1];
   let needToUpdateDB = false;
   const now = new Date();
-  now.setUTCHours(0)
-  now.setUTCMinutes(0)
-  now.setUTCSeconds(0)
-  now.setUTCMilliseconds(0)
-  now.setUTCDate(now.getUTCDate())
+  now.setUTCHours(0);
+  now.setUTCMinutes(0);
+  now.setUTCSeconds(0);
+  now.setUTCMilliseconds(0);
+  now.setUTCDate(now.getUTCDate());
   let lastUpdatedNextDate;
   if (lastRow) {
-    const lastUpdatedDate = new Date(Date.UTC(lastRow.date.getFullYear(), lastRow.date.getMonth(), lastRow.date.getDate()))
-    lastUpdatedNextDate = new Date(lastUpdatedDate)
-    lastUpdatedDate.setUTCDate(
-        lastUpdatedDate.getUTCDate() + 1
+    const lastUpdatedDate = new Date(
+      Date.UTC(
+        lastRow.date.getFullYear(),
+        lastRow.date.getMonth(),
+        lastRow.date.getDate()
+      )
     );
-    if (
-      lastUpdatedDate < now
-    ) {
+    lastUpdatedNextDate = new Date(lastUpdatedDate);
+    lastUpdatedDate.setUTCDate(lastUpdatedDate.getUTCDate() + 1);
+    if (lastUpdatedDate < now) {
       needToUpdateDB = true;
     }
   }
@@ -53,20 +55,31 @@ const fetchData = async () => {
             "f5b6e83c-39b1-47c6-a84f-cd7ebaa3b7b1"
           ].props.chartData.data[0];
 
-        return data.reduce((acc, [dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
-          const [day, month, year] = dateStr.split(".").map(Number);
-          const date = new Date(Date.UTC(year, month - 1, day));
-          const numbers = [confirmed, recovered, negativeTests, deaths].map(n => parseInt(n, 10))
-          if ((lastUpdatedNextDate && lastUpdatedNextDate >= date) || numbers.some(Number.isNaN)) {
-            return acc
-          }
-          return [
-            ...acc, [
-              date,
-              ...numbers
-            ]
-          ];
-        }, [])
+        return data.reduce(
+          (acc, [dateStr, confirmed, recovered, negativeTests, deaths = 0]) => {
+            if (dateStr === "31.10.2021") {
+              dateStr = "31.07.2021";
+            } else if (dateStr === "08.08.2025") {
+              dateStr = "08.08.2020";
+            }
+            const [day, month, year] = dateStr.split(".").map(Number);
+            const date = new Date(Date.UTC(year, month - 1, day));
+            const numbers = [
+              confirmed,
+              recovered,
+              negativeTests,
+              deaths,
+            ].map((n) => parseInt(n, 10));
+            if (
+              (lastUpdatedNextDate && lastUpdatedNextDate >= date) ||
+              numbers.some(Number.isNaN)
+            ) {
+              return acc;
+            }
+            return [...acc, [date, ...numbers]];
+          },
+          []
+        );
       })
       .then(async (data) => {
         if (data.length > 0) {
@@ -92,7 +105,9 @@ app.get("/data", async (req, res) => {
   try {
     const data = await fetchData();
     const { date } = [...data].pop();
-    const lastDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 2, 6, 30))
+    const lastDate = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 2, 6, 30)
+    );
     res.set("Expires", lastDate.toUTCString());
     res.json(data);
   } catch (error) {

@@ -287,15 +287,12 @@ function getDataPerDay(data) {
         backgroundColor: "rgba(0, 255, 0, 0.2)",
       },
       {
-        label: "% of deaths",
-        yAxisID: "avgPercent",
+        label: "# of deaths",
         fill: false,
         hidden: true,
         borderColor: "rgba(0, 0, 0, 1)",
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        data: data.map(({ confirmed, deaths }) => {
-          return Number((deaths / confirmed) * 100).toFixed(2);
-        }),
+        data: data.map((row) => row.deaths),
       },
       {
         fill: false,

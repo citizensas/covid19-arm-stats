@@ -65,6 +65,16 @@ fetch("/data")
                 max: 100,
               },
             },
+            {
+              type: "linear",
+              id: "deathPerWeek",
+              display: false,
+              ticks: {
+                beginAtZero: true,
+                min: 0,
+                max: 700,
+              },
+            },
           ],
         },
       },
@@ -288,11 +298,14 @@ function getDataPerDay(data) {
       },
       {
         label: "# of deaths",
+        yAxisID: "deathPerWeek",
         fill: false,
         hidden: true,
         borderColor: "rgba(0, 0, 0, 1)",
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        data: data.map((row) => row.deaths),
+        data: data.map(({ deaths }) => {
+          return Number(deaths);
+        }),
       },
       {
         fill: false,
